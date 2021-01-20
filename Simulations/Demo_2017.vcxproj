@@ -23,7 +23,7 @@
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>Simulations</RootNamespace>
     <ProjectName>Simulations</ProjectName>
-    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.19041.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
@@ -226,6 +226,7 @@
   <ItemGroup>
     <ClCompile Include="BalloonSimulator.cpp" />
     <ClCompile Include="DiffusionSimulator.cpp" />
+    <ClCompile Include="HeatDiffusionGrid.cpp" />
     <ClCompile Include="MassSpringSystemSimulator.cpp" />
     <ClCompile Include="TemplateSimulator.cpp" />
     <ClCompile Include="util\FFmpeg.cpp" />
@@ -235,6 +236,7 @@
     <ClInclude Include="BalloonSimulator.h" />
     <ClInclude Include="DiffusionSimulator.h" />
     <ClInclude Include="DrawingUtilitiesClass.h" />
+    <ClInclude Include="HeatDiffusionGrid.h" />
     <ClInclude Include="MassSpringSystemSimulator.h" />
     <ClInclude Include="pcgsolver.h" />
     <ClInclude Include="Simulator.h" />
