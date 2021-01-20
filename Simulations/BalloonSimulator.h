@@ -3,6 +3,7 @@
 #define BALLOONSIMULATOR_h
 #include "Simulator.h"
 #include <cmath>
+#include "HeatDiffusionGrid.h"
 
 struct MassPoint {
 	Vec3 position;
@@ -67,5 +68,8 @@ private:
 	Point2D m_mouse;
 	Point2D m_trackmouse;
 	Point2D m_oldtrackmouse;
+
+
+	HeatDiffusionGrid m_HeatDiffusionGrid;
 };
 #endif

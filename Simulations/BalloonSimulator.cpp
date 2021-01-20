@@ -1,7 +1,9 @@
 #include "BalloonSimulator.h"
 
 
-BalloonSimulator::BalloonSimulator() {
+BalloonSimulator::BalloonSimulator() 
+	:m_HeatDiffusionGrid{ 6,6,1 }
+{
 	m_fMass = 10;
 	m_fStiffness = 40;
 	m_fDamping = 0.1;
@@ -38,6 +40,7 @@ void BalloonSimulator::initUI(DrawingUtilitiesClass * DUC) {
 void BalloonSimulator::reset() {
 	envelope_points.clear();
 	envelope_springs.clear();
+	m_HeatDiffusionGrid.Reset();
 
 	create_envelope(Vec3(0,0,0), 1);
 }
@@ -52,6 +55,9 @@ void BalloonSimulator::drawFrame(ID3D11DeviceContext* pd3dImmediateContext) {
 	DUC->setUpLighting(Vec3(0.5, 0.5, 0.5), Vec3(0.5, 0.5, 0.5), 0.1, Vec3(0.5, 0.5, 0.5));
 	for (int i = 0; i < getNumberOfPoints(); i++) 
 		DUC->drawSphere(envelope_points[i].position, 0.01);
+
+
+	m_HeatDiffusionGrid.Draw(DUC, {0.0f, 0.0f, 0.0f});
 }
 
 void BalloonSimulator::notifyCaseChanged(int testCase) {
@@ -73,6 +79,7 @@ void BalloonSimulator::externalForcesCalculations(float timeElapsed) {
 void BalloonSimulator::simulateTimestep(float timeStep) {
 	eulerImplicitIntegrator(timeStep);
 	collisionCheck();
+	m_HeatDiffusionGrid.simulateTimestep(timeStep);
 }
 
 void BalloonSimulator::collisionCheck() {
@@ -83,7 +90,12 @@ void BalloonSimulator::collisionCheck() {
 		}
 }
 
-void BalloonSimulator::onClick(int x, int y) {}
+void BalloonSimulator::onClick(int x, int y) 
+{
+	m_HeatDiffusionGrid.increaseTemperature(1000.0f);
+}
+
+
 void BalloonSimulator::onMouse(int x, int y) {}
 
 // Specific Functions
