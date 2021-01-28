@@ -1,8 +1,8 @@
 #pragma once
 #ifndef BALLOONSIMULATOR_h
 #define BALLOONSIMULATOR_h
-#include "Simulator.h"
 #include <cmath>
+#include "Simulator.h"
 #include "HeatDiffusionGrid.h"
 
 struct MassPoint {
@@ -41,7 +41,7 @@ public:
 	void setStiffness(float stiffness);
 	void setDampingFactor(float damping);
 	int addMassPoint(Vec3 position, Vec3 Velocity);
-	void addSpring(int masspoint1, int masspoint2, float initialLength);
+	int addSpring(int masspoint1, int masspoint2, float initialLength);
 	int getNumberOfPoints();
 	int getNumberOfSprings();
 	Vec3 getPositionOfMassPoint(int index);
@@ -53,15 +53,27 @@ private:
 	void create_envelope(Vec3 center, float radius);
 
 	// Data Attributes
+	int start_envelope;
+	int spring_top_a;
+	int spring_top_b;
+	bool broken = false;
+
 	float m_fMass;
 	float m_fStiffness;
 	float m_fDamping;
 	float gravity = 0;
 	float wind = 0;
 
+	float a = 0.0065; // in K/m 
+	float T0 = 298.15; // in K
+	float P0 = 101325; // in Pa
+	float M = 0.029; // in kg/mol
+	float r0 = P0 * M / (8.314 * T0);
+
 	int res_envelope = 3;
 	vector<MassPoint> envelope_points;
 	vector<Spring> envelope_springs;
+	float cargo = 0;
 
 	// UI Attributes
 	Vec3 m_externalForce;
