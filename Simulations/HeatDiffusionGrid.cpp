@@ -120,12 +120,12 @@ float HeatDiffusionGrid::getTemperature()
 {
 	float l_fReturnAvg = 0;
 
-	for (int l_iXIndex = 0; l_iXIndex < m_iGridX; l_iXIndex++)
-	{
-		l_fReturnAvg += m_pNewGrid->getVal(l_iXIndex, m_iGridY - 1, 0);
-	}
+	for (int l_iIndexZ = 0; l_iIndexZ < m_iGridZ; l_iIndexZ++)
+		for (int l_iIndexY = 1; l_iIndexY < m_iGridY; l_iIndexY++)
+			for (int l_iIndexX = 1; l_iIndexX < m_iGridX; l_iIndexX++)
+				l_fReturnAvg += m_pNewGrid->getVal(l_iIndexX, l_iIndexY, l_iIndexZ);
 
-	return  l_fReturnAvg / (float)(m_iGridX - 1);
+	return  l_fReturnAvg / m_pNewGrid->getSize();
 }
 
 void HeatDiffusionGrid::increaseTemperature(const float a_fTemperatureAdd)

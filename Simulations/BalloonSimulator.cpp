@@ -176,19 +176,26 @@ void BalloonSimulator::eulerImplicitIntegrator(float h) { // Implements semi-imp
 		float radius_length = sqrt(radius.x*radius.x + radius.y*radius.y);
 		float V = 2 * 3.14159 * radius_length * radius_length; // 2D so volume = area * 1 m3
 		float h = center.y * 100; // In this game world, altitude is (center.y*100) m
-		float T = T0 - a * center.y; //temperature
+		float T_ext = T0 - a * center.y; //temperature
+		float T_int = m_HeatDiffusionGrid.getTemperature();
 		float exponent = M * gravity / (8.314 *a);
-		float P = P0 * pow(1 - a * center.y / T0, exponent); // pression from https://en.wikipedia.org/wiki/Barometric_formula
+		float P_ext = P0 * pow(1 - a * center.y / T0, exponent); // pression from https://en.wikipedia.org/wiki/Barometric_formula
+		float P_int = (2 * 3.14159 / V) * (r0*8.314*T_int / M); // Ideal gas law: PV=nRT and n = r0*V0/M
+
+		float angle_increment = 2 * 3.14159 / res_envelope;
 		for (int i = start_envelope; i < res_envelope; i++) {
 			//get vector from center
 			Vec3 dir = envelope_points[i].position - center;
-			dir /= sqrtf(dir.x*dir.x + dir.y*dir.y + dir.z*dir.z);
+			float l = sqrtf(dir.x*dir.x + dir.y*dir.y + dir.z*dir.z);
+			dir /= l;
+			float surface = l * angle_increment; // element of surface: area = Arc length * 1 m2
+			envelope_points[i].Velocity += (h * (P_int - P_ext) / surface) * dir;
 		}
 
 		// Archimedes
-		float r = P * M / (8.314 * T); // density in kg.m-3, Ideal gas law
+		float r = P_ext * M / (8.314 * T_ext); // density in kg.m-3, Ideal gas law
 		for (int i = 0; i < getNumberOfPoints(); i++) {
-			envelope_points[i].Velocity.y += (r * V - r0 * 2 * 3.14159) * gravity;
+			envelope_points[i].Velocity.y += h * (r * V - r0 * 2 * 3.14159) * gravity;
 		}
 
 		// Update air resistance

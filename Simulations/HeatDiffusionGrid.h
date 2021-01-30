@@ -20,6 +20,7 @@ private:
 		inline unsigned int getWidth() { return m_iWidth; }
 		inline unsigned int getHeight() { return m_iHeight; }
 		inline unsigned int getDepth() { return m_iDepth; }
+		inline unsigned int getSize() { return DATA_CAPACITY; }
 
 	private:
 		// Attributes
