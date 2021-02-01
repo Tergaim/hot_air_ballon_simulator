@@ -2,7 +2,7 @@
 
 
 BalloonSimulator::BalloonSimulator() 
-	:m_HeatDiffusionGrid{ 6,6,1 }
+	:m_HeatDiffusionGrid{ 6,6,1,T0 }
 {
 	m_fMass = 10;
 	m_fStiffness = 40;
@@ -20,13 +20,13 @@ void BalloonSimulator::create_envelope(Vec3 center, float radius) {
 	double angle_increment = 2 * 3.14159 / res_envelope;
 	double angle = 3.14159/2 + angle_increment;
 	float initial_length = sqrt(2-2*cos(angle_increment));
-	start_envelope = addMassPoint(Vec3(0, 1, 0), Vec3(0, 0, 0));
-	addMassPoint(Vec3(cos(angle), sin(angle), 0), Vec3(0, 0, 0));
+	start_envelope = addMassPoint(Vec3(0, 1.5, 0), Vec3(0, 0, 0));
+	addMassPoint(Vec3(cos(angle), 0.5+sin(angle), 0), Vec3(0, 0, 0));
 	spring_top_a = addSpring(start_envelope, start_envelope + 1, initial_length);
 	angle += angle_increment;
 
 	for (int i = 2; i < res_envelope; i++) {
-		addMassPoint(Vec3(cos(angle), sin(angle), 0), Vec3(1, 0, 0));
+		addMassPoint(Vec3(cos(angle), 0.5+sin(angle), 0), Vec3(1, 0, 0));
 		addSpring(start_envelope + i - 1, start_envelope + i, initial_length);
 		angle += angle_increment;
 	}
@@ -86,6 +86,7 @@ void BalloonSimulator::drawFrame(ID3D11DeviceContext* pd3dImmediateContext) {
 
 void BalloonSimulator::notifyCaseChanged(int testCase) {
 	reset();
+	collisionCheck();
 	std::cout << "Welcome to test case !" << std::endl;
 }
 
@@ -102,12 +103,10 @@ void BalloonSimulator::externalForcesCalculations(float timeElapsed) {
 }
 
 void BalloonSimulator::simulateTimestep(float timeStep) {
-	std::cout << broken << std::endl;
 	externalForcesCalculations(timeStep);
 	eulerImplicitIntegrator(timeStep);
 	collisionCheck();
-	m_HeatDiffusionGrid.simulateTimestep(timeStep);
-
+	
 	if (m_pickupPosition.x < -m_fHorizontalBoundary) {
 		generate_pickup();
 	}
@@ -116,14 +115,16 @@ void BalloonSimulator::simulateTimestep(float timeStep) {
 }
 
 void BalloonSimulator::collisionCheck() {
-	for (int i = 0; i < res_envelope; i++){
+	for (int i = 0; i < getNumberOfPoints(); i++)
 		if (envelope_points[i].position.y < -0.95) {
 			envelope_points[i].position.y = -0.95;
 			envelope_points[i].Velocity.y = 0;
 		}
-		if (envelope_points[i].position.y > 10)
+	for (int i = start_envelope; i < start_envelope + res_envelope; i++) {
+		if (envelope_points[i].position.y > 10) {
 			broken = true;
 		}
+	}
 }
 
 void BalloonSimulator::onClick(int x, int y) 
@@ -196,6 +197,7 @@ void BalloonSimulator::eulerImplicitIntegrator(float h) { // Implements semi-imp
 		float V = 2 * 3.14159 * radius_length * radius_length; // 2D so volume = area * 1 m3
 		float h = center.y * 100; // In this game world, altitude is (center.y*100) m
 		float T_ext = T0 - a * center.y; //temperature
+		m_HeatDiffusionGrid.simulateTimestep(h, T_ext);
 		float T_int = m_HeatDiffusionGrid.getTemperature();
 		float exponent = M * gravity / (8.314 *a);
 		float P_ext = P0 * pow(1 - a * center.y / T0, exponent); // pression from https://en.wikipedia.org/wiki/Barometric_formula
@@ -208,7 +210,7 @@ void BalloonSimulator::eulerImplicitIntegrator(float h) { // Implements semi-imp
 			float l = sqrtf(dir.x*dir.x + dir.y*dir.y + dir.z*dir.z);
 			dir /= l;
 			float surface = l * angle_increment; // element of surface: area = Arc length * 1 m2
-			envelope_points[i].Velocity += (h * (P_int - P_ext) / surface) * dir;
+			envelope_points[i].Velocity += 1e-4 * (h * (P_int - P_ext) / surface) * dir; // 1e-4: scaling factor, TBD
 		}
 
 		// Archimedes

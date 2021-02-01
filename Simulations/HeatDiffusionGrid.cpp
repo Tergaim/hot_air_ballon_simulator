@@ -7,7 +7,7 @@
 HeatDiffusionGrid::Grid::Grid() {
 }
 
-HeatDiffusionGrid::Grid::Grid(unsigned int a_iWidth, unsigned int a_iHeight, unsigned int a_iDepth)
+HeatDiffusionGrid::Grid::Grid(unsigned int a_iWidth, unsigned int a_iHeight, unsigned int a_iDepth, float temperature)
 	:
 	m_iWidth{ a_iWidth },
 	m_iHeight{ a_iHeight },
@@ -16,7 +16,8 @@ HeatDiffusionGrid::Grid::Grid(unsigned int a_iWidth, unsigned int a_iHeight, uns
 	GRID_MAX_INDEX{ DATA_CAPACITY - 1 },
 	m_pArrData{ new float[DATA_CAPACITY] {} }
 {
-
+	for (int i = 0; i < DATA_CAPACITY; i++)
+		m_pArrData[i] = temperature;
 }
 
 HeatDiffusionGrid::Grid::~Grid()
@@ -64,8 +65,8 @@ void HeatDiffusionGrid::Grid::setVal(unsigned int a_iX, unsigned int a_iY, unsig
 
 
 
-HeatDiffusionGrid::HeatDiffusionGrid(unsigned int a_iGridX, unsigned int a_iGridY, unsigned int a_iGridZ)
-	: m_iGridX{ a_iGridX }, m_iGridY{ a_iGridY }, m_iGridZ{a_iGridZ}
+HeatDiffusionGrid::HeatDiffusionGrid(unsigned int a_iGridX, unsigned int a_iGridY, unsigned int a_iGridZ, float temperature)
+	: m_iGridX{ a_iGridX }, m_iGridY{ a_iGridY }, m_iGridZ{a_iGridZ}, m_temperatureDefault{temperature}
 {
 	Reset();
 }
@@ -154,33 +155,18 @@ void HeatDiffusionGrid::Reset()
 	}
 
 	//Grid Setup
-	m_pGrid1 = new Grid(m_iGridX, m_iGridY, m_iGridZ);
-	m_pGrid2 = new Grid(m_iGridX, m_iGridY, m_iGridZ);
+	m_pGrid1 = new Grid(m_iGridX, m_iGridY, m_iGridZ, m_temperatureDefault);
+	m_pGrid2 = new Grid(m_iGridX, m_iGridY, m_iGridZ, m_temperatureDefault);
 
 	m_pNewGrid = m_pGrid1; //set with values on start or default on start
 	m_pOldGrid = m_pGrid2; // Is set to 0 on start
 
 	//TODO::Set the default temperature of the cells of the Grid
-
-	int l_iGridYLimiter = m_iGridY - 1;
-	int l_iGridXLimiter = m_iGridX - 1;
-	for (int l_iIndexZ = 0; l_iIndexZ < m_iGridZ; l_iIndexZ++)
-	{
-		for (int l_iIndexY = 1; l_iIndexY < l_iGridYLimiter; l_iIndexY++)
-		{
-			for (int l_iIndexX = 1; l_iIndexX < l_iGridXLimiter; l_iIndexX++)
-			{
-				if (!(l_iIndexY == 1 || l_iIndexX == 1))
-				{
-					m_pNewGrid->setVal(l_iIndexX, l_iIndexY, l_iIndexZ, 100);
-				}
-			}
-		}
-	}
+	//Done in constructor (badly, probably) Guillaume 01/02 23:20
 }
 
 
-void HeatDiffusionGrid::simulateTimestep(const float& a_fTimeStep)
+void HeatDiffusionGrid::simulateTimestep(const float& a_fTimeStep, const float temperature_ext)
 {
 	// Use the old to store the prev frames new grid values
 	//Use the new grid to store the calculated new values from the old grid

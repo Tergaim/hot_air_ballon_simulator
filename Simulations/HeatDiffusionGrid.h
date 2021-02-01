@@ -11,7 +11,7 @@ private:
 	public:
 		// Construtors
 		Grid();
-		Grid(unsigned int a_iWidth, unsigned int a_iHeight, unsigned int a_iDepth);
+		Grid(unsigned int a_iWidth, unsigned int a_iHeight, unsigned int a_iDepth, float temperature);
 		~Grid();
 
 		float getVal(unsigned int a_iX, unsigned int a_iY, unsigned int a_iZ);
@@ -37,6 +37,7 @@ private:
 	unsigned int m_iGridX = 16;
 	unsigned int m_iGridY = 16;
 	unsigned int m_iGridZ = 1;
+	float m_temperatureDefault = 0;
 	float m_fSphereRadius = 0.04f;
 	float m_fCubeDimension = 1.0f;
 	Grid* m_pGrid1 = nullptr; //save results of every time step
@@ -53,7 +54,7 @@ private:
 	void diffuseTemperatureImplicit(const float& a_fTimeStep);
 
 public:
-	HeatDiffusionGrid(unsigned int a_iGridX, unsigned int a_iGridY, unsigned int a_iGridZ);
+	HeatDiffusionGrid(unsigned int a_iGridX, unsigned int a_iGridY, unsigned int a_iGridZ, float temperature);
 	~HeatDiffusionGrid();
 
 	//Draws the grid at given position
@@ -69,5 +70,5 @@ public:
 	void Reset();
 
 	//Calculates the new temperature of each cell in the grid
-	void simulateTimestep(const float& a_fTimeStep);
+	void simulateTimestep(const float& a_fTimeStep, const float temperature_ext);
 };
