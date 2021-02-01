@@ -52,6 +52,8 @@ private:
 	void eulerImplicitIntegrator(float h);
 	void create_envelope(Vec3 center, float radius);
 
+	void generate_pickup();
+
 	// Data Attributes
 	int start_envelope;
 	int spring_top_a;
@@ -74,6 +76,12 @@ private:
 	vector<MassPoint> envelope_points;
 	vector<Spring> envelope_springs;
 	float cargo = 0;
+
+	// Pickup Attributes
+	const int m_fHorizontalBoundary = 7;
+	const int m_fVerticalBoundary = 4;
+
+	Vec3 m_pickupPosition;
 
 	// UI Attributes
 	Vec3 m_externalForce;

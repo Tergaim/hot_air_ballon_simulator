@@ -9,6 +9,10 @@ BalloonSimulator::BalloonSimulator()
 	m_fDamping = 0.1;
 	res_envelope = 10;
 	create_envelope(Vec3(0,0,0), 1.0);
+
+	srand(time(NULL));
+
+	generate_pickup();
 }
 
 void BalloonSimulator::create_envelope(Vec3 center, float radius) {
@@ -27,6 +31,12 @@ void BalloonSimulator::create_envelope(Vec3 center, float radius) {
 		angle += angle_increment;
 	}
 	spring_top_b = addSpring(start_envelope, start_envelope + res_envelope-1, initial_length);
+}
+
+void BalloonSimulator::generate_pickup() {
+	int y = (rand() % (2 * m_fVerticalBoundary + 1)) - m_fVerticalBoundary;
+
+	m_pickupPosition = Vec3(m_fHorizontalBoundary, y, 0);
 }
 
 // UI Functions
@@ -69,6 +79,9 @@ void BalloonSimulator::drawFrame(ID3D11DeviceContext* pd3dImmediateContext) {
 
 
 	m_HeatDiffusionGrid.Draw(DUC, {0.0f, 0.0f, 0.0f});
+
+	// Draw Pickup
+	DUC->drawSphere(m_pickupPosition, 0.1);
 }
 
 void BalloonSimulator::notifyCaseChanged(int testCase) {
@@ -94,6 +107,12 @@ void BalloonSimulator::simulateTimestep(float timeStep) {
 	eulerImplicitIntegrator(timeStep);
 	collisionCheck();
 	m_HeatDiffusionGrid.simulateTimestep(timeStep);
+
+	if (m_pickupPosition.x < -m_fHorizontalBoundary) {
+		generate_pickup();
+	}
+
+	m_pickupPosition -= Vec3(0.1, 0, 0);
 }
 
 void BalloonSimulator::collisionCheck() {
