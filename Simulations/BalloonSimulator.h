@@ -8,15 +8,17 @@
 struct MassPoint {
 	Vec3 position;
 	Vec3 Velocity;
+	float m;
 
-	MassPoint(Vec3 position, Vec3 Velocity) : position(position), Velocity(Velocity) {}
+	MassPoint(Vec3 position, Vec3 Velocity, float Mass) : position(position), Velocity(Velocity), m(Mass) {}
 };
 
 struct Spring {
 	int p1, p2;
 	float initial_length;
+	float stiffness;
 
-	Spring(int p1, int p2, float initial_length) : p1(p1), p2(p2), initial_length(initial_length) {}
+	Spring(int p1, int p2, float initial_length, float stiffness) : p1(p1), p2(p2), initial_length(initial_length), stiffness(stiffness) {}
 };
 
 class BalloonSimulator :public Simulator {
@@ -40,8 +42,8 @@ public:
 	void setMass(float mass);
 	void setStiffness(float stiffness);
 	void setDampingFactor(float damping);
-	int addMassPoint(Vec3 position, Vec3 Velocity);
-	int addSpring(int masspoint1, int masspoint2, float initialLength);
+	int addMassPoint(Vec3 position, Vec3 Velocity, float Mass);
+	int addSpring(int masspoint1, int masspoint2, float initialLength, float stiffness);
 	int getNumberOfPoints();
 	int getNumberOfSprings();
 	Vec3 getPositionOfMassPoint(int index);
@@ -55,6 +57,7 @@ private:
 	void generate_pickup();
 
 	// Data Attributes
+	int start_net;
 	int start_envelope;
 	int spring_top_a;
 	int spring_top_b;
@@ -72,7 +75,8 @@ private:
 	float M = 0.029; // in kg/mol
 	float r0 = P0 * M / (8.314 * T0);
 
-	int res_envelope = 3;
+	int res_envelope = 10;
+	int res_net = 10;
 	vector<MassPoint> envelope_points;
 	vector<Spring> envelope_springs;
 	float cargo = 0;

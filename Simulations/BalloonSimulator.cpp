@@ -5,7 +5,7 @@ BalloonSimulator::BalloonSimulator()
 	:m_HeatDiffusionGrid{ 6,6,1,T0 }
 {
 	m_fMass = 10;
-	m_fStiffness = 40;
+	m_fStiffness = 100;
 	m_fDamping = 0.1;
 	res_envelope = 10;
 	create_envelope(Vec3(0,0,0), 1.0);
@@ -16,21 +16,44 @@ BalloonSimulator::BalloonSimulator()
 }
 
 void BalloonSimulator::create_envelope(Vec3 center, float radius) {
+	// create net
+	std::cout << "Create net with " << res_net << " * " << res_net << " points." << std::endl;
+	float baseLength = 1.0 / res_net;
+	float mass = m_fMass / res_net;
+	start_net = getNumberOfPoints();
+	for (int i = 0; i < res_net; i++)
+		for (int j = 0; j < res_net; j++)
+			addMassPoint(Vec3(0, -baseLength * i, baseLength * j - 0.5), Vec3(0, 0, 0), mass);
+
+	for (int i = 0; i < res_net; i++)
+		for (int j = 0; j < res_net; j++) {
+			// Structural
+			if (j < res_net - 1) addSpring(start_net + res_net * i + j, start_net + res_net * i + j + 1, baseLength, m_fStiffness);
+			if (i < res_net - 1) addSpring(start_net + res_net * i + j, start_net + res_net * (i + 1) + j, baseLength, m_fStiffness);
+			// Flexion
+			if (j < res_net - 2) addSpring(start_net + res_net * i + j, start_net + res_net * i + j + 2, 2 * baseLength, m_fStiffness);
+			if (i < res_net - 2) addSpring(start_net + res_net * i + j, start_net + res_net * (i + 2) + j, 2 * baseLength, m_fStiffness);
+			// Shear
+			if (i < res_net - 1 && j < res_net - 1) addSpring(start_net + res_net * i + j, start_net + res_net * (i + 1) + j + 1, 1.414*baseLength, m_fStiffness);
+			if (i < res_net - 1 && j > 0) addSpring(start_net + res_net * i + j, start_net + res_net * (i + 1) + j - 1, 1.414*baseLength, m_fStiffness);
+		}
+
 	std::cout << "Create balloon envelope with " << res_envelope << " points." << std::endl;
 	double angle_increment = 2 * 3.14159 / res_envelope;
 	double angle = 3.14159/2 + angle_increment;
 	float initial_length = sqrt(2-2*cos(angle_increment));
-	start_envelope = addMassPoint(Vec3(0, 1.5, 0), Vec3(0, 0, 0));
-	addMassPoint(Vec3(cos(angle), 0.5+sin(angle), 0), Vec3(0, 0, 0));
-	spring_top_a = addSpring(start_envelope, start_envelope + 1, initial_length);
+	mass = m_fMass / res_envelope;
+	start_envelope = addMassPoint(Vec3(0, 2, 0) + center, Vec3(0, 0, 0), mass);
+	addMassPoint(Vec3(cos(angle), 1+sin(angle), 0) + center, Vec3(0, 0, 0), mass);
+	spring_top_a = addSpring(start_envelope, start_envelope + 1, initial_length, m_fStiffness);
 	angle += angle_increment;
 
 	for (int i = 2; i < res_envelope; i++) {
-		addMassPoint(Vec3(cos(angle), 0.5+sin(angle), 0), Vec3(1, 0, 0));
-		addSpring(start_envelope + i - 1, start_envelope + i, initial_length);
+		addMassPoint(Vec3(cos(angle), 1+sin(angle), 0) + center, Vec3(1, 0, 0), mass);
+		addSpring(start_envelope + i - 1, start_envelope + i, initial_length, m_fStiffness);
 		angle += angle_increment;
 	}
-	spring_top_b = addSpring(start_envelope, start_envelope + res_envelope-1, initial_length);
+	spring_top_b = addSpring(start_envelope, start_envelope + res_envelope-1, initial_length, m_fStiffness);
 }
 
 void BalloonSimulator::generate_pickup() {
@@ -56,7 +79,7 @@ void BalloonSimulator::reset() {
 	envelope_springs.clear();
 	m_HeatDiffusionGrid.Reset();
 
-	m_fMass = 10;
+	m_fMass = 100;
 	m_fStiffness = 40;
 	m_fDamping = 0.1;
 	broken = false;
@@ -91,12 +114,13 @@ void BalloonSimulator::notifyCaseChanged(int testCase) {
 }
 
 void BalloonSimulator::externalForcesCalculations(float timeElapsed) {
-	float mass = cargo / res_envelope + m_fMass;
+	float mass = cargo / (res_envelope+res_net);
 	for (int i = 0; i < getNumberOfPoints(); i++) {
 		// gravity
-		envelope_points[i].Velocity[1] += -timeElapsed * gravity * mass;
+		if(i<start_envelope || i >= start_envelope+res_envelope)
+			envelope_points[i].Velocity[1] += -timeElapsed * gravity * (envelope_points[i].m + mass);
 		// wind
-		envelope_points[i].Velocity[0] += timeElapsed * wind / mass;
+		envelope_points[i].Velocity[0] -= timeElapsed * wind / (envelope_points[i].m + mass);
 		// Damping
 		envelope_points[i].Velocity *= (1 - m_fDamping);
 	}
@@ -140,16 +164,16 @@ void BalloonSimulator::setMass(float mass) { m_fMass = mass; }
 void BalloonSimulator::setStiffness(float stiffness) { m_fStiffness = stiffness; }
 void BalloonSimulator::setDampingFactor(float damping) { m_fDamping = damping; }
 
-int BalloonSimulator::addMassPoint(Vec3 position, Vec3 Velocity) {
+int BalloonSimulator::addMassPoint(Vec3 position, Vec3 Velocity, float Mass) {
 	int i = getNumberOfPoints();
-	MassPoint p = MassPoint(position, Velocity);
+	MassPoint p = MassPoint(position, Velocity, Mass);
 	envelope_points.push_back(p);
 	return i;
 }
 
-int BalloonSimulator::addSpring(int masspoint1, int masspoint2, float initialLength) {
+int BalloonSimulator::addSpring(int masspoint1, int masspoint2, float initialLength, float stiffness) {
 	int i = getNumberOfSprings();
-	envelope_springs.push_back(Spring(masspoint1, masspoint2, initialLength));
+	envelope_springs.push_back(Spring(masspoint1, masspoint2, initialLength, stiffness));
 	return i;
 }
 
@@ -166,7 +190,7 @@ void BalloonSimulator::eulerImplicitIntegrator(float h) { // Implements semi-imp
 	// compute center envelope and mean speed
 	Vec3 center = Vec3(0, 0, 0);
 	Vec3 velocity = Vec3(0, 0, 0);
-	for (int i = start_envelope; i < res_envelope; i++) {
+	for (int i = start_envelope; i < res_envelope + start_envelope; i++) {
 		center += envelope_points[i].position;
 		velocity += envelope_points[i].Velocity;
 	}
@@ -182,7 +206,7 @@ void BalloonSimulator::eulerImplicitIntegrator(float h) { // Implements semi-imp
 		MassPoint p2 = envelope_points[envelope_springs[i].p2];
 		float il = envelope_springs[i].initial_length;
 		float l = sqrt(p1.position.squaredDistanceTo(p2.position));
-		float force = m_fStiffness * (l - il) / m_fMass;
+		float force = m_fStiffness * (l - il) / p1.m;
 		p1.Velocity = p1.Velocity - h * force*(p1.position - p2.position) / l;
 		envelope_points[envelope_springs[i].p1] = p1;
 		
@@ -204,32 +228,41 @@ void BalloonSimulator::eulerImplicitIntegrator(float h) { // Implements semi-imp
 		float P_int = (2 * 3.14159 / V) * (r0*8.314*T_int / M); // Ideal gas law: PV=nRT and n = r0*V0/M
 
 		float angle_increment = 2 * 3.14159 / res_envelope;
-		for (int i = start_envelope; i < res_envelope; i++) {
+		for (int i = start_envelope; i < res_envelope + start_envelope; i++) {
 			//get vector from center
 			Vec3 dir = envelope_points[i].position - center;
 			float l = sqrtf(dir.x*dir.x + dir.y*dir.y + dir.z*dir.z);
 			dir /= l;
 			float surface = l * angle_increment; // element of surface: area = Arc length * 1 m2
-			envelope_points[i].Velocity += 1e-4 * (h * (P_int - P_ext) / surface) * dir; // 1e-4: scaling factor, TBD
+			//envelope_points[i].Velocity += 1e-4 * (h * (P_int - P_ext) / surface) * dir; // 1e-4: scaling factor, TBD
 		}
 
 		// Archimedes
 		float r = P_ext * M / (8.314 * T_ext); // density in kg.m-3, Ideal gas law
-		for (int i = 0; i < getNumberOfPoints(); i++) {
-			envelope_points[i].Velocity.y += h * (r * V - r0 * 2 * 3.14159) * gravity;
+		for (int i = start_envelope; i < res_envelope + start_envelope; i++) {
+			//envelope_points[i].Velocity.y += h * (r * V - r0 * 2 * 3.14159) * gravity / envelope_points[i].m;
 		}
 
 		// Update air resistance
 		float S = sqrt(4 * V / 3.14159); // we are in 2D
 		float damping = 0.25 * r * S;
-		setDampingFactor(damping);
+		setDampingFactor(damping/4); //scaling
 	}
 
 
 	// 2. Update Position (after velocity since semi-implicit)
 	for (int i = 0; i < getNumberOfPoints(); i++) {
 		envelope_points[i].position = envelope_points[i].position + h * envelope_points[i].Velocity;
-		envelope_points[i].position.x -= center.x; // Keep balloon at center of screen
-		envelope_points[i].position.z = 0; // Keep it 2D
+		if (i > start_envelope && i < start_envelope + res_envelope) {
+			envelope_points[i].position.x -= center.x; // Keep balloon at center of screen
+			envelope_points[i].position.z = 0; // Keep the balloon 2D
+		}
+	}
+
+	// Make net stick to balloon
+	for (int i = start_net; i < start_net + res_net; i++) {
+		int bottom = start_envelope + res_envelope / 2;
+		envelope_points[i].position.x = envelope_points[bottom].position.x;
+		envelope_points[i].position.y = envelope_points[bottom].position.y;
 	}
 }
