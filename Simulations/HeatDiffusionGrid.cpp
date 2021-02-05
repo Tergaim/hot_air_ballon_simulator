@@ -7,17 +7,16 @@
 HeatDiffusionGrid::Grid::Grid() {
 }
 
-HeatDiffusionGrid::Grid::Grid(unsigned int a_iWidth, unsigned int a_iHeight, unsigned int a_iDepth, float temperature)
+HeatDiffusionGrid::Grid::Grid(unsigned int a_iWidth, unsigned int a_iHeight, unsigned int a_iDepth, float a_fDefaultTemperature)
 	:
 	m_iWidth{ a_iWidth },
 	m_iHeight{ a_iHeight },
 	m_iDepth{ a_iDepth },
 	DATA_CAPACITY{ m_iWidth * m_iHeight * m_iDepth },
 	GRID_MAX_INDEX{ DATA_CAPACITY - 1 },
-	m_pArrData{ new float[DATA_CAPACITY] {} }
+	m_pArrData{ new float[DATA_CAPACITY] {a_fDefaultTemperature} }
 {
-	for (int i = 0; i < DATA_CAPACITY; i++)
-		m_pArrData[i] = temperature;
+	
 }
 
 HeatDiffusionGrid::Grid::~Grid()
@@ -65,8 +64,8 @@ void HeatDiffusionGrid::Grid::setVal(unsigned int a_iX, unsigned int a_iY, unsig
 
 
 
-HeatDiffusionGrid::HeatDiffusionGrid(unsigned int a_iGridX, unsigned int a_iGridY, unsigned int a_iGridZ, float temperature)
-	: m_iGridX{ a_iGridX }, m_iGridY{ a_iGridY }, m_iGridZ{a_iGridZ}, m_temperatureDefault{temperature}
+HeatDiffusionGrid::HeatDiffusionGrid(unsigned int a_iGridX, unsigned int a_iGridY, unsigned int a_iGridZ, float a_fDefaultTemperature, float a_fMaxTemperature)
+	: m_iGridX{ a_iGridX }, m_iGridY{ a_iGridY }, m_iGridZ{ a_iGridZ }, m_fDefaultTemperature{ a_fDefaultTemperature }, MAX_TEMPERATURE{ a_fMaxTemperature }
 {
 	Reset();
 }
@@ -120,22 +119,30 @@ void HeatDiffusionGrid::Draw(DrawingUtilitiesClass* DUC, Vec3 a_v3Position)
 float HeatDiffusionGrid::getTemperature()
 {
 	float l_fReturnAvg = 0;
+	int l_iGridYLimiter = m_iGridY - 1;
+	int l_iGridXLimiter = m_iGridX - 1;
+	int l_iCellCount = 0;
 
 	for (int l_iIndexZ = 0; l_iIndexZ < m_iGridZ; l_iIndexZ++)
-		for (int l_iIndexY = 1; l_iIndexY < m_iGridY; l_iIndexY++)
-			for (int l_iIndexX = 1; l_iIndexX < m_iGridX; l_iIndexX++)
+		for (int l_iIndexY = 1; l_iIndexY < l_iGridYLimiter; l_iIndexY++)
+			for (int l_iIndexX = 1; l_iIndexX < l_iGridXLimiter; l_iIndexX++, l_iCellCount++)
+			{
 				l_fReturnAvg += m_pNewGrid->getVal(l_iIndexX, l_iIndexY, l_iIndexZ);
+			}
 
-	return  l_fReturnAvg / m_pNewGrid->getSize();
+	return  l_fReturnAvg / l_iCellCount;
 }
 
 void HeatDiffusionGrid::increaseTemperature(const float a_fTemperatureAdd)
 {
 	if (a_fTemperatureAdd > 0.0f)
 	{
-		int m_iHeatCellXIndex = m_iGridX / 2;
-		float l_fTempValue = m_pNewGrid->getVal(m_iHeatCellXIndex, 1, 0) + a_fTemperatureAdd;
-		m_pNewGrid->setVal(m_iHeatCellXIndex, 1,0, std::fmin(l_fTempValue + a_fTemperatureAdd, MAX_TEMPERATURE));
+		int l_iXLimiter = m_iGridX - 1;
+		for (int l_iXIndex = 1; l_iXIndex < l_iXLimiter; l_iXIndex++)
+		{
+			float l_fTempValue = m_pNewGrid->getVal(l_iXIndex, 1, 0) + a_fTemperatureAdd;
+			m_pNewGrid->setVal(l_iXIndex, 1, 0, std::fmin(l_fTempValue + a_fTemperatureAdd, MAX_TEMPERATURE));
+		}
 	}
 }
 
@@ -155,18 +162,16 @@ void HeatDiffusionGrid::Reset()
 	}
 
 	//Grid Setup
-	m_pGrid1 = new Grid(m_iGridX, m_iGridY, m_iGridZ, m_temperatureDefault);
-	m_pGrid2 = new Grid(m_iGridX, m_iGridY, m_iGridZ, m_temperatureDefault);
+	m_pGrid1 = new Grid(m_iGridX, m_iGridY, m_iGridZ, m_fDefaultTemperature);
+	m_pGrid2 = new Grid(m_iGridX, m_iGridY, m_iGridZ, m_fDefaultTemperature);
 
 	m_pNewGrid = m_pGrid1; //set with values on start or default on start
 	m_pOldGrid = m_pGrid2; // Is set to 0 on start
 
-	//TODO::Set the default temperature of the cells of the Grid
-	//Done in constructor (badly, probably) Guillaume 01/02 23:20
 }
 
 
-void HeatDiffusionGrid::simulateTimestep(const float& a_fTimeStep, const float temperature_ext)
+void HeatDiffusionGrid::simulateTimestep(const float& a_fTimeStep, float a_fExternalTemprature)
 {
 	// Use the old to store the prev frames new grid values
 	//Use the new grid to store the calculated new values from the old grid

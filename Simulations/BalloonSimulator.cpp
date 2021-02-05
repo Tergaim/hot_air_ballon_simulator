@@ -2,7 +2,7 @@
 
 
 BalloonSimulator::BalloonSimulator() 
-	:m_HeatDiffusionGrid{ 6,6,1,T0 }
+	:m_HeatDiffusionGrid{ 6,6,1,T0, 500.0f }
 {
 	m_fMass = 10;
 	m_fStiffness = 100;
@@ -153,7 +153,7 @@ void BalloonSimulator::collisionCheck() {
 
 void BalloonSimulator::onClick(int x, int y) 
 {
-	m_HeatDiffusionGrid.increaseTemperature(1000.0f);
+	m_HeatDiffusionGrid.increaseTemperature(100.0f);
 }
 
 
@@ -219,7 +219,7 @@ void BalloonSimulator::eulerImplicitIntegrator(float h) { // Implements semi-imp
 		Vec3 radius = envelope_points[start_envelope].position - center;
 		float radius_length = sqrt(radius.x*radius.x + radius.y*radius.y);
 		float V = 2 * 3.14159 * radius_length * radius_length; // 2D so volume = area * 1 m3
-		float h = center.y * 100; // In this game world, altitude is (center.y*100) m
+		float l_fAltitude = center.y * 100; // In this game world, altitude is (center.y*100) m
 		float T_ext = T0 - a * center.y; //temperature
 		m_HeatDiffusionGrid.simulateTimestep(h, T_ext);
 		float T_int = m_HeatDiffusionGrid.getTemperature();
