@@ -50,6 +50,8 @@ public:
 	Vec3 getVelocityOfMassPoint(int index);
 	void applyExternalForce(Vec3 force);
 
+	void onMouseBtnDown();
+
 private:
 	void eulerImplicitIntegrator(float h);
 	void create_envelope(Vec3 center, float radius);

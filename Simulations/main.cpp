@@ -293,6 +293,15 @@ void CALLBACK OnFrameMove( double dTime, float fElapsedTime, void* pUserContext 
 				firstTime = true;
 		}
 	}
+
+	if (DXUTIsMouseButtonDown(VK_LBUTTON))
+	{
+		BalloonSimulator* l_pBalloonSim = dynamic_cast<BalloonSimulator*>(g_pSimulator);
+		if (l_pBalloonSim != nullptr)
+		{
+			l_pBalloonSim->onMouseBtnDown();
+		}
+	}
 }
 
 //--------------------------------------------------------------------------------------

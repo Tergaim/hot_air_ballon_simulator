@@ -153,7 +153,7 @@ void BalloonSimulator::collisionCheck() {
 
 void BalloonSimulator::onClick(int x, int y) 
 {
-	m_HeatDiffusionGrid.increaseTemperature(100.0f);
+	
 }
 
 
@@ -265,4 +265,9 @@ void BalloonSimulator::eulerImplicitIntegrator(float h) { // Implements semi-imp
 		envelope_points[i].position.x = envelope_points[bottom].position.x;
 		envelope_points[i].position.y = envelope_points[bottom].position.y;
 	}
+}
+
+void BalloonSimulator::onMouseBtnDown()
+{
+	m_HeatDiffusionGrid.increaseTemperature(100.0f);
 }
