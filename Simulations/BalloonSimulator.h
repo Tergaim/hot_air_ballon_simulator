@@ -84,8 +84,9 @@ private:
 	float cargo = 0;
 
 	// Pickup Attributes
-	const int m_fHorizontalBoundary = 7;
-	const int m_fVerticalBoundary = 4;
+	const int m_fHorizontalBoundary = 10;
+	const int m_fTopBoundary = 10;
+	const int m_fBotBoundary = 0;
 
 	Vec3 m_pickupPosition;
 

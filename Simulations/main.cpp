@@ -321,10 +321,10 @@ void CALLBACK OnD3D11FrameRender( ID3D11Device* pd3dDevice, ID3D11DeviceContext*
 	pd3dImmediateContext->ClearDepthStencilView( pDSV, D3D11_CLEAR_DEPTH, 1.0f, 0 );
 
     // Draw floor
-    g_pDUC->DrawFloor(pd3dImmediateContext);
+    //g_pDUC->DrawFloor(pd3dImmediateContext);
 
     // Draw axis box
-     g_pDUC->DrawBoundingBox(pd3dImmediateContext);
+    //g_pDUC->DrawBoundingBox(pd3dImmediateContext);
 
 	// Draw Simulator
 	if(g_bDraw)g_pSimulator->drawFrame(pd3dImmediateContext);
@@ -371,8 +371,8 @@ int main(int argc, char* argv[])
 	// Init Drawing Class
 	g_pDUC = new DrawingUtilitiesClass();
     // Init camera
- 	XMFLOAT3 eye(0.0f, 0.0f, -10.0f);
-	XMFLOAT3 lookAt(0.0f, 0.0f, 0.0f);
+ 	XMFLOAT3 eye(0.0f, 5.0f, -15.0f);
+	XMFLOAT3 lookAt(0.0f, 5.0f, 0.0f);
 	g_pDUC->g_camera.SetViewParams(XMLoadFloat3(&eye), XMLoadFloat3(&lookAt));
 	//g_pDUC->g_camera.SetButtonMasks(MOUSE_MIDDLE_BUTTON, MOUSE_WHEEL, MOUSE_RIGHT_BUTTON);
 	g_pDUC->g_camera.SetButtonMasks(0x00, 0x00, 0x00); // Disable Camera Control

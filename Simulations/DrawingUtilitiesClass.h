@@ -299,7 +299,7 @@ void drawSphere(const XMVECTOR pos, const XMVECTOR scale)
 	// Setup position/normal effect (per object variables)
 	XMMATRIX s    = XMMatrixScaling(XMVectorGetX(scale), XMVectorGetY(scale),XMVectorGetZ(scale));
     XMMATRIX t    = XMMatrixTranslation(XMVectorGetX(pos), XMVectorGetY(pos), XMVectorGetZ(pos));
-    g_pEffectPositionNormal->SetWorld(s * t * g_camera.GetWorldMatrix());
+    g_pEffectPositionNormal->SetWorld(s * t);
     // Draw
     // NOTE: The following generates one draw call per object, so performance will be bad for n>>1000 or so
     g_pSphere->Draw( g_pEffectPositionNormal,  g_pInputLayoutPositionNormal);
@@ -399,7 +399,7 @@ void DrawTriangleUsingShaders()
 
 void beginLine()
 {
-	g_pEffectPositionColor->SetWorld(g_camera.GetWorldMatrix());
+	g_pEffectPositionColor->SetWorld(XMMatrixIdentity());
     g_pEffectPositionColor->Apply(g_pd3dImmediateContext);
 	g_pd3dImmediateContext->IASetInputLayout(g_pInputLayoutPositionColor);
 	// Draw

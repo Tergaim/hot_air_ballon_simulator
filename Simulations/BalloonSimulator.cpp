@@ -57,7 +57,7 @@ void BalloonSimulator::create_envelope(Vec3 center, float radius) {
 }
 
 void BalloonSimulator::generate_pickup() {
-	int y = (rand() % (2 * m_fVerticalBoundary + 1)) - m_fVerticalBoundary;
+	int y = (rand() % (m_fTopBoundary - m_fBotBoundary + 1)) + m_fBotBoundary;
 
 	m_pickupPosition = Vec3(m_fHorizontalBoundary, y, 0);
 }
