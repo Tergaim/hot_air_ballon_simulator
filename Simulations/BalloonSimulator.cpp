@@ -8,7 +8,7 @@ BalloonSimulator::BalloonSimulator()
 	m_fStiffness = 100;
 	m_fDamping = 0.1;
 	res_envelope = 10;
-	create_envelope(Vec3(0,0,0), 1.0);
+	create_envelope(Vec3(0,5,0), 1.0);
 
 	srand(time(NULL));
 
@@ -23,7 +23,7 @@ void BalloonSimulator::create_envelope(Vec3 center, float radius) {
 	start_net = getNumberOfPoints();
 	for (int i = 0; i < res_net; i++)
 		for (int j = 0; j < res_net; j++)
-			addMassPoint(Vec3(0, -baseLength * i, baseLength * j - 0.5), Vec3(0, 0, 0), mass);
+			addMassPoint(Vec3(0, -baseLength * i, baseLength * j - 0.5) + center, Vec3(0, 0, 0), mass);
 
 	for (int i = 0; i < res_net; i++)
 		for (int j = 0; j < res_net; j++) {
@@ -83,7 +83,7 @@ void BalloonSimulator::reset() {
 	m_fStiffness = 40;
 	m_fDamping = 0.1;
 	broken = false;
-	create_envelope(Vec3(0,0,0), 1);
+	create_envelope(Vec3(0,5,0), 1);
 }
 
 void BalloonSimulator::drawFrame(ID3D11DeviceContext* pd3dImmediateContext) {
