@@ -45,7 +45,7 @@ private:
 	float m_fDiffusionAlpa = 0.9f;
 	float m_fDefaultTemperature = 0.0f;
 
-	const float MAX_TEMPERATURE = 1000.0f;
+	const float MAX_TEMPERATURE = 100.0f;
 
 	void setupB(std::vector<Real>& b);
 	void fillT(std::vector<Real>& x);

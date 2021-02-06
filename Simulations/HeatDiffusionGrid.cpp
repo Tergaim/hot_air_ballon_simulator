@@ -191,13 +191,25 @@ void HeatDiffusionGrid::simulateTimestep(const float& a_fTimeStep, float a_fExte
 	m_pOldGrid = m_pNewGrid;
 	m_pNewGrid = l_pTemp;
 
-	std::cout << "Before\n";
-	print(m_pOldGrid);
+
+	int l_iXLimiter = m_iGridX - 1;
+	int l_iYLimiter = m_iGridY - 1;
+
+	//Set the boundary cells with the external temperature
+	/*for (int l_iZIndex = 0; l_iZIndex < m_iGridZ; l_iZIndex++)
+		for (int l_iYIndex = 0; l_iYIndex <= l_iYLimiter; l_iYIndex++)
+			for (int l_iXIndex = 0; l_iXIndex <= l_iXLimiter; l_iXIndex++)
+				if (l_iYIndex == 0 || l_iYIndex == l_iYLimiter || l_iXIndex == 0 || l_iXIndex == l_iXLimiter)
+					m_pOldGrid->setVal(l_iXIndex, l_iYIndex, l_iZIndex, a_fExternalTemprature);*/
+
+	//std::cout << "Before\n";
+	//print(m_pOldGrid); 
 	diffuseTemperatureImplicit(a_fTimeStep);
 
-	std::cout << "After\n";
-	print(m_pNewGrid);
-	std::cout << "\n\n\n";
+	
+	//std::cout << "After\n";
+	//print(m_pNewGrid);
+	//std::cout << "\n\n\n";
 }
 
 

@@ -2,12 +2,15 @@
 
 
 BalloonSimulator::BalloonSimulator() 
-	:m_HeatDiffusionGrid{ 6,6,1,T0, 500.0f }
+	:m_HeatDiffusionGrid{ 6,6,1,0, 500.0f }
 {
-	m_fMass = 10;
+	m_fMass = 100;
 	m_fStiffness = 100;
 	m_fDamping = 0.1;
 	res_envelope = 10;
+
+	gravity = 9.81;
+
 	create_envelope(Vec3(0,5,0), 1.0);
 
 	srand(time(NULL));
@@ -72,6 +75,10 @@ void BalloonSimulator::initUI(DrawingUtilitiesClass * DUC) {
 	TwAddVarRW(DUC->g_pTweakBar, "Wind Force", TW_TYPE_FLOAT, &wind, "min=0 step=0.1");
 	TwAddVarRW(DUC->g_pTweakBar, "Spring stiffness", TW_TYPE_FLOAT, &m_fStiffness, "min=10 step=10");
 	TwAddVarRW(DUC->g_pTweakBar, "Damping", TW_TYPE_FLOAT, &m_fDamping, "min=0 max=1 step=0.1");
+	TwAddVarRW(DUC->g_pTweakBar, "Altitude", TW_TYPE_FLOAT, &l_fAltitude, "");
+	TwAddVarRW(DUC->g_pTweakBar, "T_ext", TW_TYPE_FLOAT, &T_ext,"");
+	TwAddVarRW(DUC->g_pTweakBar, "T_inf", TW_TYPE_FLOAT, &T_int,"");
+
 }
 
 void BalloonSimulator::reset() {
@@ -117,8 +124,7 @@ void BalloonSimulator::externalForcesCalculations(float timeElapsed) {
 	float mass = cargo / (res_envelope+res_net);
 	for (int i = 0; i < getNumberOfPoints(); i++) {
 		// gravity
-		if(i<start_envelope || i >= start_envelope+res_envelope)
-			envelope_points[i].Velocity[1] += -timeElapsed * gravity * (envelope_points[i].m + mass);
+		envelope_points[i].Velocity[1] += -timeElapsed * gravity * (envelope_points[i].m + mass);
 		// wind
 		envelope_points[i].Velocity[0] -= timeElapsed * wind / (envelope_points[i].m + mass);
 		// Damping
@@ -219,14 +225,15 @@ void BalloonSimulator::eulerImplicitIntegrator(float h) { // Implements semi-imp
 		Vec3 radius = envelope_points[start_envelope].position - center;
 		float radius_length = sqrt(radius.x*radius.x + radius.y*radius.y);
 		float V = 2 * 3.14159 * radius_length * radius_length; // 2D so volume = area * 1 m3
-		float l_fAltitude = center.y * 100; // In this game world, altitude is (center.y*100) m
-		float T_ext = T0 - a * center.y; //temperature
+		l_fAltitude = center.y * 1000; // In this game world, altitude is (center.y*100) m
+		T_ext = T0 - a * l_fAltitude; //temperature
 		m_HeatDiffusionGrid.simulateTimestep(h, T_ext);
-		float T_int = m_HeatDiffusionGrid.getTemperature();
+		T_int = T_ext + m_HeatDiffusionGrid.getTemperature();
 		float exponent = M * gravity / (8.314 *a);
-		float P_ext = P0 * pow(1 - a * center.y / T0, exponent); // pression from https://en.wikipedia.org/wiki/Barometric_formula
+		float P_ext = P0 * pow(1 - a * l_fAltitude / T0, exponent); // pression from https://en.wikipedia.org/wiki/Barometric_formula
 		float P_int = (2 * 3.14159 / V) * (r0*8.314*T_int / M); // Ideal gas law: PV=nRT and n = r0*V0/M
-
+		std::cout << l_fAltitude << " " << T_ext << " " << T_int << std::endl;
+		std::cout << center.y << " " << P_ext << " " << P_int << std::endl;
 		float angle_increment = 2 * 3.14159 / res_envelope;
 		for (int i = start_envelope; i < res_envelope + start_envelope; i++) {
 			//get vector from center
@@ -234,13 +241,15 @@ void BalloonSimulator::eulerImplicitIntegrator(float h) { // Implements semi-imp
 			float l = sqrtf(dir.x*dir.x + dir.y*dir.y + dir.z*dir.z);
 			dir /= l;
 			float surface = l * angle_increment; // element of surface: area = Arc length * 1 m2
-			//envelope_points[i].Velocity += 1e-4 * (h * (P_int - P_ext) / surface) * dir; // 1e-4: scaling factor, TBD
+			envelope_points[i].Velocity += 1e-2*(h * (P_int - P_ext) / surface) * dir; // 1e-4: scaling factor, TBD
 		}
 
 		// Archimedes
 		float r = P_ext * M / (8.314 * T_ext); // density in kg.m-3, Ideal gas law
+		float archimedes = 100 * (r * V - r0 * 2 * 3.14159) * gravity;
+		std::cout << "Archimedes : " << archimedes << std::endl;
 		for (int i = start_envelope; i < res_envelope + start_envelope; i++) {
-			//envelope_points[i].Velocity.y += h * (r * V - r0 * 2 * 3.14159) * gravity / envelope_points[i].m;
+			envelope_points[i].Velocity.y += h * archimedes / envelope_points[i].m;
 		}
 
 		// Update air resistance
@@ -252,7 +261,7 @@ void BalloonSimulator::eulerImplicitIntegrator(float h) { // Implements semi-imp
 
 	// 2. Update Position (after velocity since semi-implicit)
 	for (int i = 0; i < getNumberOfPoints(); i++) {
-		envelope_points[i].position = envelope_points[i].position + h * envelope_points[i].Velocity;
+		envelope_points[i].position = envelope_points[i].position + 10 * h * envelope_points[i].Velocity;
 		if (i > start_envelope && i < start_envelope + res_envelope) {
 			envelope_points[i].position.x -= center.x; // Keep balloon at center of screen
 			envelope_points[i].position.z = 0; // Keep the balloon 2D
@@ -269,5 +278,5 @@ void BalloonSimulator::eulerImplicitIntegrator(float h) { // Implements semi-imp
 
 void BalloonSimulator::onMouseBtnDown()
 {
-	m_HeatDiffusionGrid.increaseTemperature(100.0f);
+	m_HeatDiffusionGrid.increaseTemperature(50.0f);
 }

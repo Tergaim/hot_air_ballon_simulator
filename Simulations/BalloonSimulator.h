@@ -77,6 +77,10 @@ private:
 	float M = 0.029; // in kg/mol
 	float r0 = P0 * M / (8.314 * T0);
 
+	float T_ext = T0;
+	float T_int = T0;
+	float l_fAltitude = 1000;
+
 	int res_envelope = 10;
 	int res_net = 10;
 	vector<MassPoint> envelope_points;
