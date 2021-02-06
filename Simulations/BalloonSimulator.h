@@ -80,6 +80,7 @@ private:
 	float T_ext = T0;
 	float T_int = T0;
 	float l_fAltitude = 1000;
+	Vec3 center = Vec3(0,1,0);
 
 	int res_envelope = 10;
 	int res_net = 10;

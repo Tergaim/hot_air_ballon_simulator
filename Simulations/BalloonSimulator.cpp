@@ -2,12 +2,13 @@
 
 
 BalloonSimulator::BalloonSimulator() 
-	:m_HeatDiffusionGrid{ 6,6,1,0, 500.0f }
+	:m_HeatDiffusionGrid{ 20,20,1,0, 1500.0f }
 {
 	m_fMass = 100;
 	m_fStiffness = 100;
 	m_fDamping = 0.1;
-	res_envelope = 10;
+	res_envelope = 100;
+	res_net = 1;
 
 	gravity = 9.81;
 
@@ -20,32 +21,32 @@ BalloonSimulator::BalloonSimulator()
 
 void BalloonSimulator::create_envelope(Vec3 center, float radius) {
 	// create net
-	std::cout << "Create net with " << res_net << " * " << res_net << " points." << std::endl;
-	float baseLength = 1.0 / res_net;
-	float mass = m_fMass / res_net;
-	start_net = getNumberOfPoints();
-	for (int i = 0; i < res_net; i++)
-		for (int j = 0; j < res_net; j++)
-			addMassPoint(Vec3(0, -baseLength * i, baseLength * j - 0.5) + center, Vec3(0, 0, 0), mass);
+	//std::cout << "Create net with " << res_net << " * " << res_net << " points." << std::endl;
+	//float baseLength = 1.0 / res_net;
+	//float mass = m_fMass / res_net;
+	//start_net = getNumberOfPoints();
+	//for (int i = 0; i < res_net; i++)
+	//	for (int j = 0; j < res_net; j++)
+	//		addMassPoint(Vec3(0, -baseLength * i, baseLength * j - 0.5) + center, Vec3(0, 0, 0), mass);
 
-	for (int i = 0; i < res_net; i++)
-		for (int j = 0; j < res_net; j++) {
-			// Structural
-			if (j < res_net - 1) addSpring(start_net + res_net * i + j, start_net + res_net * i + j + 1, baseLength, m_fStiffness);
-			if (i < res_net - 1) addSpring(start_net + res_net * i + j, start_net + res_net * (i + 1) + j, baseLength, m_fStiffness);
-			// Flexion
-			if (j < res_net - 2) addSpring(start_net + res_net * i + j, start_net + res_net * i + j + 2, 2 * baseLength, m_fStiffness);
-			if (i < res_net - 2) addSpring(start_net + res_net * i + j, start_net + res_net * (i + 2) + j, 2 * baseLength, m_fStiffness);
-			// Shear
-			if (i < res_net - 1 && j < res_net - 1) addSpring(start_net + res_net * i + j, start_net + res_net * (i + 1) + j + 1, 1.414*baseLength, m_fStiffness);
-			if (i < res_net - 1 && j > 0) addSpring(start_net + res_net * i + j, start_net + res_net * (i + 1) + j - 1, 1.414*baseLength, m_fStiffness);
-		}
+	//for (int i = 0; i < res_net; i++)
+	//	for (int j = 0; j < res_net; j++) {
+	//		// Structural
+	//		if (j < res_net - 1) addSpring(start_net + res_net * i + j, start_net + res_net * i + j + 1, baseLength, m_fStiffness);
+	//		if (i < res_net - 1) addSpring(start_net + res_net * i + j, start_net + res_net * (i + 1) + j, baseLength, m_fStiffness);
+	//		// Flexion
+	//		if (j < res_net - 2) addSpring(start_net + res_net * i + j, start_net + res_net * i + j + 2, 2 * baseLength, m_fStiffness);
+	//		if (i < res_net - 2) addSpring(start_net + res_net * i + j, start_net + res_net * (i + 2) + j, 2 * baseLength, m_fStiffness);
+	//		// Shear
+	//		if (i < res_net - 1 && j < res_net - 1) addSpring(start_net + res_net * i + j, start_net + res_net * (i + 1) + j + 1, 1.414*baseLength, m_fStiffness);
+	//		if (i < res_net - 1 && j > 0) addSpring(start_net + res_net * i + j, start_net + res_net * (i + 1) + j - 1, 1.414*baseLength, m_fStiffness);
+	//	}
 
 	std::cout << "Create balloon envelope with " << res_envelope << " points." << std::endl;
 	double angle_increment = 2 * 3.14159 / res_envelope;
 	double angle = 3.14159/2 + angle_increment;
 	float initial_length = sqrt(2-2*cos(angle_increment));
-	mass = m_fMass / res_envelope;
+	float mass = m_fMass / res_envelope;
 	start_envelope = addMassPoint(Vec3(0, 2, 0) + center, Vec3(0, 0, 0), mass);
 	addMassPoint(Vec3(cos(angle), 1+sin(angle), 0) + center, Vec3(0, 0, 0), mass);
 	spring_top_a = addSpring(start_envelope, start_envelope + 1, initial_length, m_fStiffness);
@@ -107,8 +108,8 @@ void BalloonSimulator::drawFrame(ID3D11DeviceContext* pd3dImmediateContext) {
 		if(!broken || i != start_envelope )
 			DUC->drawSphere(envelope_points[i].position, 0.01);
 
-
-	m_HeatDiffusionGrid.Draw(DUC, {0.0f, 0.0f, 0.0f});
+	if(!broken)
+		m_HeatDiffusionGrid.Draw(DUC, center);
 
 	// Draw Pickup
 	DUC->drawSphere(m_pickupPosition, 0.1);
@@ -121,7 +122,7 @@ void BalloonSimulator::notifyCaseChanged(int testCase) {
 }
 
 void BalloonSimulator::externalForcesCalculations(float timeElapsed) {
-	float mass = cargo / (res_envelope+res_net);
+	float mass = cargo / res_envelope;
 	for (int i = 0; i < getNumberOfPoints(); i++) {
 		// gravity
 		envelope_points[i].Velocity[1] += -timeElapsed * gravity * (envelope_points[i].m + mass);
@@ -194,13 +195,13 @@ void BalloonSimulator::eulerImplicitIntegrator(float h) { // Implements semi-imp
 	// 1. Update Velocity
 
 	// compute center envelope and mean speed
-	Vec3 center = Vec3(0, 0, 0);
+	Vec3 center_t = Vec3(0, 0, 0);
 	Vec3 velocity = Vec3(0, 0, 0);
 	for (int i = start_envelope; i < res_envelope + start_envelope; i++) {
-		center += envelope_points[i].position;
+		center_t += envelope_points[i].position;
 		velocity += envelope_points[i].Velocity;
 	}
-	center /= res_envelope;
+	center = center_t / res_envelope;
 	velocity /= res_envelope;
 
 
@@ -220,33 +221,36 @@ void BalloonSimulator::eulerImplicitIntegrator(float h) { // Implements semi-imp
 		envelope_points[envelope_springs[i].p2] = p2;
 	}
 
+	//pression
+	Vec3 radius = envelope_points[start_envelope].position - center;
+	float radius_length = sqrt(radius.x*radius.x + radius.y*radius.y);
+	float V = 2 * 3.14159 * radius_length * radius_length; // 2D so volume = area * 1 m3
+	l_fAltitude = center.y * 1000; // In this game world, altitude is (center.y*100) m
+	T_ext = T0 - a * l_fAltitude; //temperature
+	float exponent = M * gravity / (8.314 *a);
+	float P_ext = P0 * pow(1 - a * l_fAltitude / T0, exponent); // pression from https://en.wikipedia.org/wiki/Barometric_formula
+	float P_int = P_ext;
 	if (!broken) {
-		// pression
-		Vec3 radius = envelope_points[start_envelope].position - center;
-		float radius_length = sqrt(radius.x*radius.x + radius.y*radius.y);
-		float V = 2 * 3.14159 * radius_length * radius_length; // 2D so volume = area * 1 m3
-		l_fAltitude = center.y * 1000; // In this game world, altitude is (center.y*100) m
-		T_ext = T0 - a * l_fAltitude; //temperature
 		m_HeatDiffusionGrid.simulateTimestep(h, T_ext);
 		T_int = T_ext + m_HeatDiffusionGrid.getTemperature();
-		float exponent = M * gravity / (8.314 *a);
-		float P_ext = P0 * pow(1 - a * l_fAltitude / T0, exponent); // pression from https://en.wikipedia.org/wiki/Barometric_formula
-		float P_int = (2 * 3.14159 / V) * (r0*8.314*T_int / M); // Ideal gas law: PV=nRT and n = r0*V0/M
-		std::cout << l_fAltitude << " " << T_ext << " " << T_int << std::endl;
-		std::cout << center.y << " " << P_ext << " " << P_int << std::endl;
-		float angle_increment = 2 * 3.14159 / res_envelope;
-		for (int i = start_envelope; i < res_envelope + start_envelope; i++) {
-			//get vector from center
-			Vec3 dir = envelope_points[i].position - center;
-			float l = sqrtf(dir.x*dir.x + dir.y*dir.y + dir.z*dir.z);
-			dir /= l;
-			float surface = l * angle_increment; // element of surface: area = Arc length * 1 m2
-			envelope_points[i].Velocity += 1e-2*(h * (P_int - P_ext) / surface) * dir; // 1e-4: scaling factor, TBD
-		}
+		P_int = (2 * 3.14159 / V) * (r0*8.314*T_int / M); // Ideal gas law: PV=nRT and n = r0*V0/M
+	}
+	std::cout << l_fAltitude << " " << T_ext << " " << T_int << std::endl;
+	std::cout << center.y << " " << P_ext << " " << P_int << std::endl;
+	float angle_increment = 2 * 3.14159 / res_envelope;
+	for (int i = start_envelope; i < res_envelope + start_envelope; i++) {
+		//get vector from center
+		Vec3 dir = envelope_points[i].position - center;
+		float l = sqrtf(dir.x*dir.x + dir.y*dir.y + dir.z*dir.z);
+		dir /= l;
+		float surface = l * 2 * 3.14159; // element of surface: area = Arc length * 1 m2
+		envelope_points[i].Velocity += (h * (P_int - P_ext) / (surface*res_envelope)) * dir; // 1e-4: scaling factor, TBD
+	}
 
+	if (!broken) {
 		// Archimedes
 		float r = P_ext * M / (8.314 * T_ext); // density in kg.m-3, Ideal gas law
-		float archimedes = 100 * (r * V - r0 * 2 * 3.14159) * gravity;
+		float archimedes = (1000/res_envelope) * (r * V - r0 * 2 * 3.14159) * gravity;
 		std::cout << "Archimedes : " << archimedes << std::endl;
 		for (int i = start_envelope; i < res_envelope + start_envelope; i++) {
 			envelope_points[i].Velocity.y += h * archimedes / envelope_points[i].m;
@@ -260,6 +264,8 @@ void BalloonSimulator::eulerImplicitIntegrator(float h) { // Implements semi-imp
 
 
 	// 2. Update Position (after velocity since semi-implicit)
+	if (broken)
+		h = h * 20;
 	for (int i = 0; i < getNumberOfPoints(); i++) {
 		envelope_points[i].position = envelope_points[i].position + 10 * h * envelope_points[i].Velocity;
 		if (i > start_envelope && i < start_envelope + res_envelope) {
@@ -269,14 +275,14 @@ void BalloonSimulator::eulerImplicitIntegrator(float h) { // Implements semi-imp
 	}
 
 	// Make net stick to balloon
-	for (int i = start_net; i < start_net + res_net; i++) {
+	/*for (int i = start_net; i < start_net + res_net; i++) {
 		int bottom = start_envelope + res_envelope / 2;
 		envelope_points[i].position.x = envelope_points[bottom].position.x;
 		envelope_points[i].position.y = envelope_points[bottom].position.y;
-	}
+	}*/
 }
 
 void BalloonSimulator::onMouseBtnDown()
 {
-	m_HeatDiffusionGrid.increaseTemperature(50.0f);
+	m_HeatDiffusionGrid.increaseTemperature(150.0f);
 }

@@ -114,15 +114,18 @@ void HeatDiffusionGrid::Draw(DrawingUtilitiesClass* DUC, Vec3 a_v3Position)
 		float l_fXPoZ = (m_fCubeDimension * -0.5f) + l_fDeltaZ * l_iIndexZ;
 		for (int l_iIndexY = 1; l_iIndexY < l_iGrixYLimiter; l_iIndexY++)
 		{
-			float l_fYPos = (m_fCubeDimension * -0.5f) + l_fDeltaY * l_iIndexY;
+			float l_fYPos = (m_fCubeDimension * -1.0f) + l_fDeltaY * l_iIndexY*2;
 			for (int l_iIndexX = 1; l_iIndexX < l_iGrixXLimiter; l_iIndexX++)
 			{
-				float l_fNewValue = m_pNewGrid->getVal(l_iIndexX, l_iIndexY, l_iIndexZ);
+				Vec3 p = Vec3{ (m_fCubeDimension * -1.0f) + l_fDeltaX * l_iIndexX * 2, l_fYPos, l_fXPoZ };
+				if (p.x*p.x + p.y*p.y + p.z*p.z < 1 && p.y + a_v3Position.y > -0.95) {
+					float l_fNewValue = m_pNewGrid->getVal(l_iIndexX, l_iIndexY, l_iIndexZ);
+					float l_fNormalizedTemperature = l_fNewValue / MAX_TEMPERATURE;
 
-				float l_fNormalizedTemperature = l_fNewValue / MAX_TEMPERATURE;
 
-				DUC->setUpLighting(Vec3(), 0.4 * Vec3(1, 1, 1), 100, Vec3(1.0f, l_fNormalizedTemperature, l_fNormalizedTemperature));
-				DUC->drawSphere( Vec3{ (m_fCubeDimension * -0.5f) + l_fDeltaX * l_iIndexX, l_fYPos, l_fXPoZ } + a_v3Position, l_v3SphereScale);
+					DUC->setUpLighting(Vec3(), 0.4 * Vec3(1, 1, 1), 100, Vec3(1.0f, l_fNormalizedTemperature, l_fNormalizedTemperature));
+					DUC->drawSphere(p + a_v3Position, l_v3SphereScale);
+				}
 			}
 		}
 	}
