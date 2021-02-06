@@ -14,9 +14,21 @@ HeatDiffusionGrid::Grid::Grid(unsigned int a_iWidth, unsigned int a_iHeight, uns
 	m_iDepth{ a_iDepth },
 	DATA_CAPACITY{ m_iWidth * m_iHeight * m_iDepth },
 	GRID_MAX_INDEX{ DATA_CAPACITY - 1 },
-	m_pArrData{ new float[DATA_CAPACITY] {a_fDefaultTemperature} }
+	m_pArrData{ new float[DATA_CAPACITY] {} }
 {
-	
+	int l_iXLimiter = m_iWidth - 1;
+	int l_iYLimiter = m_iHeight - 1;
+
+	for (int l_iZIndex = 0; l_iZIndex < m_iDepth; l_iZIndex++)
+	{
+		for (int l_iYIndex = 1; l_iYIndex < l_iYLimiter; l_iYIndex++)
+		{
+			for (int l_iXIndex = 1; l_iXIndex < l_iXLimiter; l_iXIndex++)
+			{
+				setVal(l_iXIndex, l_iYIndex, l_iZIndex, a_fDefaultTemperature);
+			}
+		}
+	}
 }
 
 HeatDiffusionGrid::Grid::~Grid()
@@ -178,7 +190,14 @@ void HeatDiffusionGrid::simulateTimestep(const float& a_fTimeStep, float a_fExte
 	Grid* l_pTemp = m_pOldGrid;
 	m_pOldGrid = m_pNewGrid;
 	m_pNewGrid = l_pTemp;
+
+	std::cout << "Before\n";
+	print(m_pOldGrid);
 	diffuseTemperatureImplicit(a_fTimeStep);
+
+	std::cout << "After\n";
+	print(m_pNewGrid);
+	std::cout << "\n\n\n";
 }
 
 
@@ -318,4 +337,12 @@ void HeatDiffusionGrid::diffuseTemperatureImplicit(const float& a_fTimeStep) {//
 	solver.solve(A, b, x, ret_pcg_residual, ret_pcg_iterations, 0);
 	// x contains the new temperature values
 	fillT(x);//copy x to T
+}
+
+void HeatDiffusionGrid::print(Grid* a_pGrid) {
+	for (int l_iIndexY = 0; l_iIndexY < m_iGridY; l_iIndexY++) {
+		for (int l_iIndexX = 0; l_iIndexX < m_iGridX; l_iIndexX++)
+			std::cout << a_pGrid->getVal(l_iIndexX, l_iIndexY, 0) << '\t';
+		std::cout << std::endl;
+	}
 }

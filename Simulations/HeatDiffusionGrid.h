@@ -70,4 +70,6 @@ public:
 
 	//Calculates the new temperature of each cell in the grid
 	void simulateTimestep(const float& a_fTimeStep, float a_fExternalTemprature);
+
+	void print(Grid* a_pGrid);
 };
