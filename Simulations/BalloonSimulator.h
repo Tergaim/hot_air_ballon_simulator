@@ -61,6 +61,7 @@ private:
 	// Data Attributes
 	int start_net;
 	int start_envelope;
+	int mid_envelope;
 	int spring_top_a;
 	int spring_top_b;
 	bool broken = false;
@@ -80,6 +81,7 @@ private:
 	float T_ext = T0;
 	float T_int = T0;
 	float l_fAltitude = 1000;
+	float m_fRadius;
 	Vec3 center = Vec3(0,1,0);
 
 	int res_envelope = 10;

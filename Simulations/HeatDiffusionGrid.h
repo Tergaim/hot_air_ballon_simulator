@@ -57,7 +57,7 @@ public:
 	~HeatDiffusionGrid();
 
 	//Draws the grid at given position
-	void Draw(DrawingUtilitiesClass* DUC, Vec3 a_v3Position);
+	void Draw(DrawingUtilitiesClass* DUC, Vec3 a_v3Position, float a_fRadius);
 
 	//Returns the temperature of the upper row of the diffusion grid
 	float getTemperature();
