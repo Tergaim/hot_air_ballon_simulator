@@ -117,7 +117,7 @@ void HeatDiffusionGrid::Draw(DrawingUtilitiesClass* DUC, Vec3 a_v3Position, floa
 			float l_fYPos = (m_fCubeDimension * -1.0f) + l_fDeltaY * l_iIndexY*2;
 			for (int l_iIndexX = 1; l_iIndexX < l_iGrixXLimiter; l_iIndexX++)
 			{
-				Vec3 p = Vec3{ (m_fCubeDimension * -1.0f) + l_fDeltaX * l_iIndexX * 2, l_fYPos, l_fXPoZ };
+				Vec3 p = a_fRadius*Vec3{ (m_fCubeDimension * -1.0f) + l_fDeltaX * l_iIndexX * 2, l_fYPos, l_fXPoZ };
 				if (p.x*p.x + p.y*p.y + p.z*p.z < a_fRadius && p.y + a_v3Position.y > -0.95) {
 					float l_fNewValue = m_pNewGrid->getVal(l_iIndexX, l_iIndexY, l_iIndexZ);
 					float l_fNormalizedTemperature = l_fNewValue / MAX_TEMPERATURE;

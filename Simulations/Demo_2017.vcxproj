@@ -224,6 +224,7 @@
     </FxCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="BalloonFleetSimulator.cpp" />
     <ClCompile Include="BalloonSimulator.cpp" />
     <ClCompile Include="DiffusionSimulator.cpp" />
     <ClCompile Include="HeatDiffusionGrid.cpp" />
@@ -233,6 +234,7 @@
     <ClCompile Include="util\util.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BalloonFleetSimulator.h" />
     <ClInclude Include="BalloonSimulator.h" />
     <ClInclude Include="DiffusionSimulator.h" />
     <ClInclude Include="DrawingUtilitiesClass.h" />

@@ -1,6 +1,4 @@
 #pragma once
-#ifndef BALLOONSIMULATOR_h
-#define BALLOONSIMULATOR_h
 #include <cmath>
 #include "Simulator.h"
 #include "HeatDiffusionGrid.h"
@@ -25,12 +23,15 @@ class BalloonSimulator :public Simulator {
 public:
 	// Construtors
 	BalloonSimulator();
+	BalloonSimulator(Vec3 position, float radius);
 
 	// UI Functions
 	const char * getTestCasesStr();
 	void initUI(DrawingUtilitiesClass * DUC);
 	void reset();
 	void drawFrame(ID3D11DeviceContext* pd3dImmediateContext);
+	void draw(DrawingUtilitiesClass* DUC);
+
 	void notifyCaseChanged(int testCase);
 	void externalForcesCalculations(float timeElapsed);
 	void simulateTimestep(float timeStep);
@@ -46,6 +47,7 @@ public:
 	int addSpring(int masspoint1, int masspoint2, float initialLength, float stiffness);
 	int getNumberOfPoints();
 	int getNumberOfSprings();
+	Vec3 getCenter();
 	Vec3 getPositionOfMassPoint(int index);
 	Vec3 getVelocityOfMassPoint(int index);
 	void applyExternalForce(Vec3 force);
@@ -65,6 +67,7 @@ private:
 	int spring_top_a;
 	int spring_top_b;
 	bool broken = false;
+	bool game = false;
 
 	float m_fMass;
 	float m_fStiffness;
@@ -81,8 +84,11 @@ private:
 	float T_ext = T0;
 	float T_int = T0;
 	float l_fAltitude = 1000;
-	float m_fRadius;
+
+	Vec3 original_center;
+	float original_radius;
 	Vec3 center = Vec3(0,1,0);
+	float m_fRadius;
 
 	int res_envelope = 10;
 	int res_net = 10;
@@ -106,4 +112,3 @@ private:
 
 	HeatDiffusionGrid m_HeatDiffusionGrid;
 };
-#endif

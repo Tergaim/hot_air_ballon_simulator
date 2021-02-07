@@ -45,7 +45,7 @@ using namespace GamePhysics;
 #endif
 
 #ifdef BALLOON_SYSTEM
-#include "BalloonSimulator.h"
+#include "BalloonFleetSimulator.h"
 #endif
 
 DrawingUtilitiesClass * g_pDUC;
