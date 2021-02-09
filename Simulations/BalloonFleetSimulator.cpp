@@ -4,7 +4,7 @@
 BalloonFleetSimulator::BalloonFleetSimulator()
 {
 	std::cout << "Create simulator" << std::endl;
-	n_balloons = 5;
+	n_balloons = 1;
 	srand(time(NULL));
 }
 

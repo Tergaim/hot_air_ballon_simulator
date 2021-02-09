@@ -296,7 +296,7 @@ void CALLBACK OnFrameMove( double dTime, float fElapsedTime, void* pUserContext 
 
 	if (DXUTIsMouseButtonDown(VK_LBUTTON))
 	{
-		BalloonSimulator* l_pBalloonSim = dynamic_cast<BalloonSimulator*>(g_pSimulator);
+		BalloonFleetSimulator* l_pBalloonSim = dynamic_cast<BalloonFleetSimulator*>(g_pSimulator);
 		if (l_pBalloonSim != nullptr)
 		{
 			l_pBalloonSim->onMouseBtnDown();
@@ -394,7 +394,7 @@ int main(int argc, char* argv[])
 	g_pSimulator= new DiffusionSimulator();
 #endif
 #ifdef BALLOON_SYSTEM
-	g_pSimulator = new BalloonSimulator();
+	g_pSimulator = new BalloonFleetSimulator();
 #endif
 	g_pSimulator->reset();
 

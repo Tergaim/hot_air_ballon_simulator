@@ -103,14 +103,14 @@ void BalloonSimulator::drawFrame(ID3D11DeviceContext* pd3dImmediateContext) {
 		if (broken && (i == spring_top_a || i == spring_top_b))
 			continue;
 		DUC->beginLine();
-		std::cout << "Began Line" << std::endl;
+		//std::cout << "Began Line" << std::endl;
 		DUC->drawLine(envelope_points[envelope_springs[i].p1].position, Vec3(1, 1, 1), envelope_points[envelope_springs[i].p2].position, Vec3(1, 1, 1));
-		std::cout << "Ended Line" << std::endl;
+		//std::cout << "Ended Line" << std::endl;
 		DUC->endLine();
 	}
 
 	DUC->setUpLighting(Vec3(0.5, 0.5, 0.5), Vec3(0.5, 0.5, 0.5), 0.1, Vec3(0.5, 0.5, 0.5));
-	std::cout << "Set up lighting" << std::endl;
+	//std::cout << "Set up lighting" << std::endl;
 	for (int i = 0; i < getNumberOfPoints(); i++) 
 		if(!broken || i != start_envelope )
 			DUC->drawSphere(envelope_points[i].position, 0.01);

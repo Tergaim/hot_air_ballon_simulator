@@ -1,3 +1,8 @@
+This is our code for Group Project 6, a balloon simulator which couples a mass-spring system and a heat diffusion grid.
+
+The executables used during the presentation can be found in the `0_game` and `1_Fleet` folders.
+
+
 -------------------------------------------------------------------------------
 --- Visual Studio 2013/15/17 Template Project for C++/DirectX11 Application ---
 --- Marc Treib, Florian Ferstl, Sept 2013 -------------------------------------
